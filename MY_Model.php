@@ -45,10 +45,10 @@ class MY_Model extends CI_Model {
 		parent::__construct();
 		
 		// if the models array is not empty
-		if ( ! empty($models) )
+		if ( ! empty($models))
 		{
 			// load each additional model
-			foreach ( $models as $model )
+			foreach ($models as $model)
 			{
 				$this->load->model($model);
 			}
@@ -75,9 +75,12 @@ class MY_Model extends CI_Model {
 		);
 		$options = $this->_default($default, $options);
 
+		// check if fields have been specified or get them from the table
+		$this->_set_editable_fields();
+
 		// qualification (make sure that we're not allowing the site to insert data that it shouldn't)
-		foreach ( $this->fields as $field) {
-			if ( isset($options[$field]) ) $this->db->set($field, $options[$field]);
+		foreach ($this->fields as $field) {
+			if (isset($options[$field])) $this->db->set($field, $options[$field]);
 		}
 
 		// Execute the query
@@ -177,6 +180,9 @@ class MY_Model extends CI_Model {
 			'date_modified' => date($this->config->item('log_date_format'))
 		);
 		$options = $this->_default($default, $options);
+		
+		// check if fields have been specified or get them from the table
+		$this->_set_editable_fields();
 
 		// qualification (make sure that we're not allowing the site to update data that it shouldn't)
 		foreach ($this->fields as $field)
@@ -215,6 +221,21 @@ class MY_Model extends CI_Model {
 	}
 	
 	/**
+	 * set editable fields in the table, if no fields are specified in the model, fields will be pulled dynamically from the table
+	 *
+	 * @return void
+	 */
+	function _set_editable_fields()
+	{
+		// if the fields array is empty
+		if (empty($this->fields))
+		{
+			// pull the fields dynamically from the database
+			$this->fields = $this->db->list_fields($this->primary_table);
+		}
+	}
+	
+	/**
 	 * _required method returns false if the $data array does not contain all of the keys assigned by the $required array.
 	 *
 	 * @param array $required
@@ -238,5 +259,4 @@ class MY_Model extends CI_Model {
 	{
 		return array_merge($defaults, $options);
 	}
-	
 }
