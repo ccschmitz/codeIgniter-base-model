@@ -79,10 +79,25 @@ class MY_Model extends CI_Model {
 		$this->_set_editable_fields();
 
 		// qualification (make sure that we're not allowing the site to insert data that it shouldn't)
-		foreach ($this->fields as $field) {
-			if (isset($options[$field])) $this->db->set($field, $options[$field]);
+		foreach ($this->fields as $field) 
+		{
+			// if the field exists in the database
+			if ($this->db->field_exists($field, $this->primary_table))
+			{
+				// and if we are trying to set the value of the field
+				if (isset($options[$field]))
+				{
+					// set the value
+					$this->db->set($field, $options[$field]);
+				}
+			}
+			else // field does not exist in the database
+			{
+				// display an error
+				show_error('You are trying to insert data into a field that does not exist.  The field "'. $field .'" does not exist in the database.');
+			}
 		}
-
+		
 		// Execute the query
 		$query = $this->db->insert($this->primary_table);
 
@@ -120,14 +135,8 @@ class MY_Model extends CI_Model {
 		);
 		$options = $this->_default($defaults, $options);
 
-		// add where clauses to query
-		foreach ($this->fields as $field)
-		{
-			if (isset($options[$field])) $this->db->where($field, $options[$field]);
-		}
-
 		// if limit / offset are declared then we need to take them into account
-		if (isset($options['limit']) and isset($options['offset']))
+		if (isset($options['limit']) && isset($options['offset']))
 		{
 			$this->db->limit($options['limit'], $options['offset']);
 		}
@@ -183,11 +192,25 @@ class MY_Model extends CI_Model {
 		
 		// check if fields have been specified or get them from the table
 		$this->_set_editable_fields();
-
-		// qualification (make sure that we're not allowing the site to update data that it shouldn't)
-		foreach ($this->fields as $field)
+		
+		// qualification (make sure that we're not allowing the site to insert data that it shouldn't)
+		foreach ($this->fields as $field) 
 		{
-			if (isset($options[$field]) ) $this->db->set($field, $options[$field]);
+			// if the field exists in the database
+			if ($this->db->field_exists($field, $this->primary_table))
+			{
+				// and if we are trying to set the value of the field
+				if (isset($options[$field]))
+				{
+					// set the value
+					$this->db->set($field, $options[$field]);
+				}
+			}
+			else // field does not exist in the database
+			{
+				// display an error
+				show_error('You are trying to insert data into a field that does not exist.  The field "'. $field .'" does not exist in the database.');
+			}
 		}
 				
 		// update on primary key
