@@ -39,15 +39,13 @@ class MY_Model extends CI_Model {
 	
 	/**
 	 * Constructor
-	 *
-	 * @author Chris Schmitz <chris@beperceived.com>
 	 */
 	function __construct()
 	{
 		parent::__construct();
 		
 		// if the models array is not empty
-		if ( ! empty($models))
+		if ( ! empty($models) )
 		{
 			// load each additional model
 			foreach ( $models as $model )
@@ -68,7 +66,7 @@ class MY_Model extends CI_Model {
 	function add($options = array())
 	{
 		// make sure required values are there
-		if ( ! $this->_required($this->required_fields, $options) ) return FALSE;
+		if ( ! $this->_required($this->required_fields, $options)) return FALSE;
 
 		// default values
 		$default = array(
@@ -78,7 +76,7 @@ class MY_Model extends CI_Model {
 		$options = $this->_default($default, $options);
 
 		// qualification (make sure that we're not allowing the site to insert data that it shouldn't)
-		foreach ( $this->fields as $field ) {
+		foreach ( $this->fields as $field) {
 			if ( isset($options[$field]) ) $this->db->set($field, $options[$field]);
 		}
 
@@ -86,10 +84,10 @@ class MY_Model extends CI_Model {
 		$query = $this->db->insert($this->primary_table);
 
 		// if the query was run successfully
-		if ( $query )
+		if ($query)
 		{
 			// if there is a primary key
-			if ( $this->no_primary_key == FALSE )
+			if ($this->no_primary_key == FALSE)
 			{
 				return $this->db->insert_id();
 			}
@@ -120,26 +118,26 @@ class MY_Model extends CI_Model {
 		$options = $this->_default($defaults, $options);
 
 		// add where clauses to query
-		foreach($this->fields as $field)
+		foreach ($this->fields as $field)
 		{
-			if ( isset($options[$field]) ) $this->db->where($field, $options[$field]);
+			if (isset($options[$field])) $this->db->where($field, $options[$field]);
 		}
 
 		// if limit / offset are declared then we need to take them into account
-		if ( isset($options['limit']) and isset($options['offset']) )
+		if (isset($options['limit']) and isset($options['offset']))
 		{
 			$this->db->limit($options['limit'], $options['offset']);
 		}
 		else
 		{
-			if ( isset($options['limit']) )
+			if (isset($options['limit']))
 			{
 			    $this->db->limit($options['limit']);
 			}
 		}
 
 		// sort
-		if ( isset($options['sort_by']) )
+		if (isset($options['sort_by']))
 		{
 			$this->db->order_by($options['sort_by'], $options['sort_direction']);
 		}
@@ -148,7 +146,7 @@ class MY_Model extends CI_Model {
 		$query = $this->db->get($this->primary_table);
 		
 		// if an id was specified...
-		if ( isset($options['id']) )
+		if (isset($options['id']))
 		{
 			// return the result as an object
 			return $query->row();
@@ -172,7 +170,7 @@ class MY_Model extends CI_Model {
 	{
 		// required values
 		$required = array('id');
-		if ( ! $this->_required($required, $options) ) return FALSE;
+		if ( ! $this->_required($required, $options)) return FALSE;
 
 		// default values
 		$default = array(
@@ -181,9 +179,9 @@ class MY_Model extends CI_Model {
 		$options = $this->_default($default, $options);
 
 		// qualification (make sure that we're not allowing the site to update data that it shouldn't)
-		foreach( $this->fields as $field )
+		foreach ($this->fields as $field)
 		{
-			if ( isset($options[$field]) ) $this->db->set($field, $options[$field] );
+			if (isset($options[$field]) ) $this->db->set($field, $options[$field]);
 		}
 				
 		// update on primary key
@@ -209,7 +207,7 @@ class MY_Model extends CI_Model {
 	{
 		// required values
 		$required = array('id');
-		if( ! $this->_required($required, $options) ) return FALSE;
+		if ( ! $this->_required($required, $options)) return FALSE;
 		
 		// execute delete query
 		$this->db->where('id', $options['id']);
@@ -225,7 +223,7 @@ class MY_Model extends CI_Model {
 	 */
 	function _required($required, $data)
 	{
-		foreach ( $required as $field ) if ( ! isset($data[$field]) ) return FALSE;
+		foreach ($required as $field) if ( ! isset($data[$field])) return FALSE;
 		return TRUE;
 	}
 	
