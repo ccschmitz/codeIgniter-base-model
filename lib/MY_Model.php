@@ -31,6 +31,20 @@ class MY_Model extends CI_Model {
 	protected $models = array();
 	
 	/**
+	 * Set the primary key for the table
+	 *
+	 * @var string
+	 */
+	protected $primary_key = 'id';
+	
+	/**
+	 * Boolean to toggle field existence checks
+	 *
+	 * @var bool
+	 */
+	protected $validate_field_existence = FALSE;
+	
+	/**
 	 * Used if there is no primary key for the table
 	 *
 	 * @var bool
@@ -43,12 +57,12 @@ class MY_Model extends CI_Model {
 	function __construct()
 	{
 		parent::__construct();
-		
+				
 		// if the models array is not empty
-		if ( ! empty($models))
+		if ( ! empty($this->models))
 		{
 			// load each additional model
-			foreach ($models as $model)
+			foreach ($this->models as $model)
 			{
 				$this->load->model($model);
 			}
@@ -66,7 +80,16 @@ class MY_Model extends CI_Model {
 	function add($options = array())
 	{
 		// make sure required values are there
-		if ( ! $this->_required($this->required_fields, $options)) return FALSE;
+		if ( ! $this->_required($this->required_fields, $options))
+		{
+			return FALSE;
+		}
+		
+		// check if fields have been specified or get them from the table
+		$this->_set_editable_fields($this->primary_table);
+		
+		// do field existence check
+		$this->_validate_options_exist($options);
 
 		// default values
 		$default = array(
@@ -74,27 +97,14 @@ class MY_Model extends CI_Model {
 			'date_modified' => date($this->config->item('log_date_format'))
 		);
 		$options = $this->_default($default, $options);
-
-		// check if fields have been specified or get them from the table
-		$this->_set_editable_fields();
-
+		
 		// qualification (make sure that we're not allowing the site to insert data that it shouldn't)
 		foreach ($this->fields as $field) 
 		{
-			// if the field exists in the database
-			if ($this->db->field_exists($field, $this->primary_table))
+			// if we are trying to set the value of the field
+			if (isset($options[$field]))
 			{
-				// and if we are trying to set the value of the field
-				if (isset($options[$field]))
-				{
-					// set the value
-					$this->db->set($field, $options[$field]);
-				}
-			}
-			else // field does not exist in the database
-			{
-				// display an error
-				show_error('You are trying to insert data into a field that does not exist.  The field "'. $field .'" does not exist in the database.');
+				$this->db->set($field, $options[$field]);
 			}
 		}
 		
@@ -104,12 +114,12 @@ class MY_Model extends CI_Model {
 		// if the query was run successfully
 		if ($query)
 		{
-			// if there is a primary key
+			// if there is no primary key
 			if ($this->no_primary_key == FALSE)
 			{
 				return $this->db->insert_id();
 			}
-			else // return false
+			else
 			{
 				return TRUE;
 			}
@@ -130,10 +140,21 @@ class MY_Model extends CI_Model {
 	{
 		// default values
 		$defaults = array(
-			/*'sort_by' => 'name',*/
 			'sort_direction' => 'asc'
 		);
 		$options = $this->_default($defaults, $options);
+		
+		// check if fields have been specified or get them from the table
+		$this->_set_editable_fields($this->primary_table);
+		
+		// add where clauses to query
+		foreach ($this->fields as $field)
+		{
+			if (isset($options[$field]))
+			{
+				$this->db->where($field, $options[$field]);
+			}
+		}
 
 		// if limit / offset are declared then we need to take them into account
 		if (isset($options['limit']) && isset($options['offset']))
@@ -158,7 +179,7 @@ class MY_Model extends CI_Model {
 		$query = $this->db->get($this->primary_table);
 		
 		// if an id was specified...
-		if (isset($options['id']))
+		if (isset($options[$this->primary_key]))
 		{
 			// return the result as an object
 			return $query->row();
@@ -181,8 +202,17 @@ class MY_Model extends CI_Model {
 	function update($options = array())
 	{
 		// required values
-		$required = array('id');
-		if ( ! $this->_required($required, $options)) return FALSE;
+		$required = array($this->primary_key);
+		if ( ! $this->_required($required, $options))
+		{
+			return FALSE;
+		}
+		
+		// check if fields have been specified or get them from the table
+		$this->_set_editable_fields($this->primary_table);
+		
+		// do field existence check
+		$this->_validate_options_exist($options);
 
 		// default values
 		$default = array(
@@ -190,31 +220,18 @@ class MY_Model extends CI_Model {
 		);
 		$options = $this->_default($default, $options);
 		
-		// check if fields have been specified or get them from the table
-		$this->_set_editable_fields();
-		
 		// qualification (make sure that we're not allowing the site to insert data that it shouldn't)
 		foreach ($this->fields as $field) 
 		{
-			// if the field exists in the database
-			if ($this->db->field_exists($field, $this->primary_table))
+			// if we are trying to set the value of the field
+			if (isset($options[$field]))
 			{
-				// and if we are trying to set the value of the field
-				if (isset($options[$field]))
-				{
-					// set the value
-					$this->db->set($field, $options[$field]);
-				}
-			}
-			else // field does not exist in the database
-			{
-				// display an error
-				show_error('You are trying to insert data into a field that does not exist.  The field "'. $field .'" does not exist in the database.');
+				$this->db->set($field, $options[$field]);
 			}
 		}
 				
 		// update on primary key
-		$this->db->where('id', $options['id']);
+		$this->db->where($this->primary_key, $options[$this->primary_key]);
 
 		// Execute the query
 		$this->db->update($this->primary_table);
@@ -235,12 +252,40 @@ class MY_Model extends CI_Model {
 	function delete($options = array())
 	{
 		// required values
-		$required = array('id');
-		if ( ! $this->_required($required, $options)) return FALSE;
+		$required = array($this->primary_key);
+		if ( ! $this->_required($required, $options))
+		{
+			return FALSE;
+		}
 		
 		// execute delete query
-		$this->db->where('id', $options['id']);
+		$this->db->where($this->primary_key, $options[$this->primary_key]);
 		return $this->db->delete($this->primary_table);
+	}
+	
+	/**
+	 * Validates that the fields you are trying to modify actually exist in the database
+	 * 
+	 * Only use this method for debugging, not fit for production code because of the number of queries it has to run
+	 *
+	 * @param string $options 
+	 * @return void
+	 */
+	function _validate_options_exist($options)
+	{
+		// if field existence validation is enabled
+		if ($this->validate_field_existence == TRUE)
+		{
+			foreach ($options as $key => $value)
+			{
+				// if the field does not exist in the database
+				if ( ! $this->db->field_exists($key, $this->primary_table))
+				{
+					// display an error
+					show_error('You are trying to insert data into a field that does not exist.  The field "'. $key .'" does not exist in the "'. $this->primary_table .'" table.');
+				}
+			}
+		}
 	}
 	
 	/**
@@ -254,7 +299,9 @@ class MY_Model extends CI_Model {
 		if (empty($this->fields))
 		{
 			// pull the fields dynamically from the database
+			$this->db->cache_on();
 			$this->fields = $this->db->list_fields($this->primary_table);
+			$this->db->cache_off();
 		}
 	}
 	
@@ -267,7 +314,13 @@ class MY_Model extends CI_Model {
 	 */
 	function _required($required, $data)
 	{
-		foreach ($required as $field) if ( ! isset($data[$field])) return FALSE;
+		foreach ($required as $field)
+		{
+			if ( ! isset($data[$field]))
+			{
+				return FALSE;
+			}
+		}
 		return TRUE;
 	}
 	
