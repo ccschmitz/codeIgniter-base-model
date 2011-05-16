@@ -5,6 +5,9 @@ Here is the base model that I use on all of my CodeIgniter projects. This provid
 		class Company_model extends MY_Model {
 
 		    var $primary_table = 'companies';
+		
+				var $validate_field_existence = TRUE;
+				
 		    var $fields = array(
 		        'id',
 		        'name',
@@ -17,6 +20,7 @@ Here is the base model that I use on all of my CodeIgniter projects. This provid
 		        'date_created',
 		        'date_modified'
 		    );
+		
 		    var $required_fields = array(
 		        'name',
 		        'address',
@@ -28,11 +32,12 @@ Here is the base model that I use on all of my CodeIgniter projects. This provid
 
 		}
 		
-* The primary_table variable is the name of the table the model should execute queries on.
-* The fields array is just a list of the fields in the database that the model has access to.
-* The required_fields are fields that must be submitted any time a record is created or updated.
+* **primary_table** - The name of the table the model should execute queries on.
+* **validate_field_existence** - Set to true to turn on field existence validation.
+* **fields**  - An array of the fields in the database that the model has access to.  If you don't specify the fields here they will be pulled dynamically from the database and the query will be cached.
+* **required_fields** An array of fields that must be submitted any time a record is created or updated.
 
-With this model in place I can just insert a record like this:
+Inserting records works like this:
 
 		// put all form data into an array
 		$options = array(
@@ -46,14 +51,17 @@ With this model in place I can just insert a record like this:
 		);
 		// send the array to the model
 		$company = $this->company_model->add($options);
-		
-and I have a new record in the database!
 
-Selecting records is a breeze too. You can select records by any field specified in the fields array of the model:
+When selecting records, you can filter by any field specified in the fields array of the model:
 
-		$options = array( 
-		    'id' => $this->uri->segment(4)
+		$options = array(
+		    'name' => $this->input->post('search_name'),
+				'zipcode' => $this->input->post('search_zipcode')
 		);
 		$company = $this->company_model->get($options);
+		
+If you specify the primary key, the model knows you are looking for a single record and will return the object rather than the query result.
 
-This model is based on the model by Shawn McCool from his article How To Write A Better Model In CodeIgniter. It's worked out pretty well so far but I would love to get some feedback from the community and see if anyone has ideas for improvements or if they have a base model that they enjoy working with.
+This model is based on a model by Shawn McCool from his article [How To Write A Better Model In CodeIgniter](). It has worked out pretty well for me so far but I would love to get some feedback from the community and see if anyone has ideas for improvements or if they have a base model that they enjoy working with.
+
+The code is up on [GitHub]() if anyone would like to contribute.
