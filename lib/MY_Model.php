@@ -51,17 +51,12 @@ class MY_Model extends CI_Model {
 	 */
 	protected $no_primary_key = FALSE;
 	
-	/**
-	 * Constructor
-	 */
 	function __construct()
 	{
 		parent::__construct();
 				
-		// if the models array is not empty
 		if ( ! empty($this->models))
 		{
-			// load each additional model
 			foreach ($this->models as $model)
 			{
 				$this->load->model($model);
@@ -79,19 +74,15 @@ class MY_Model extends CI_Model {
 	 */
 	function add($options = array())
 	{
-		// make sure required values are there
 		if ( ! $this->_required($this->required_fields, $options))
 		{
 			return FALSE;
 		}
 		
-		// check if fields have been specified or get them from the table
 		$this->_set_editable_fields($this->primary_table);
 		
-		// do field existence check
 		$this->_validate_options_exist($options);
 
-		// default values
 		$default = array(
 			'date_created' => date($this->config->item('log_date_format')),
 			'date_modified' => date($this->config->item('log_date_format'))
@@ -101,20 +92,16 @@ class MY_Model extends CI_Model {
 		// qualification (make sure that we're not allowing the site to insert data that it shouldn't)
 		foreach ($this->fields as $field) 
 		{
-			// if we are trying to set the value of the field
 			if (isset($options[$field]))
 			{
 				$this->db->set($field, $options[$field]);
 			}
 		}
 		
-		// Execute the query
 		$query = $this->db->insert($this->primary_table);
 
-		// if the query was run successfully
 		if ($query)
 		{
-			// if there is no primary key
 			if ($this->no_primary_key == FALSE)
 			{
 				return $this->db->insert_id();
@@ -138,16 +125,13 @@ class MY_Model extends CI_Model {
 	 */
 	function get($options = array())
 	{
-		// default values
 		$defaults = array(
 			'sort_direction' => 'asc'
 		);
 		$options = $this->_default($defaults, $options);
 		
-		// check if fields have been specified or get them from the table
 		$this->_set_editable_fields($this->primary_table);
 		
-		// add where clauses to query
 		foreach ($this->fields as $field)
 		{
 			if (isset($options[$field]))
@@ -156,7 +140,6 @@ class MY_Model extends CI_Model {
 			}
 		}
 
-		// if limit / offset are declared then we need to take them into account
 		if (isset($options['limit']) && isset($options['offset']))
 		{
 			$this->db->limit($options['limit'], $options['offset']);
@@ -169,24 +152,20 @@ class MY_Model extends CI_Model {
 			}
 		}
 
-		// sort
 		if (isset($options['sort_by']))
 		{
 			$this->db->order_by($options['sort_by'], $options['sort_direction']);
 		}
 		
-		// execute the query
 		$query = $this->db->get($this->primary_table);
 		
-		// if an id was specified...
+		// if an id was specified we know you only are retrieving a single record so we return the object
 		if (isset($options[$this->primary_key]))
 		{
-			// return the result as an object
 			return $query->row();
 		}
 		else
 		{
-			// return the regular query result
 			return $query;
 		}
 	}
@@ -201,20 +180,16 @@ class MY_Model extends CI_Model {
 	 */
 	function update($options = array())
 	{
-		// required values
 		$required = array($this->primary_key);
 		if ( ! $this->_required($required, $options))
 		{
 			return FALSE;
 		}
 		
-		// check if fields have been specified or get them from the table
 		$this->_set_editable_fields($this->primary_table);
 		
-		// do field existence check
 		$this->_validate_options_exist($options);
 
-		// default values
 		$default = array(
 			'date_modified' => date($this->config->item('log_date_format'))
 		);
@@ -223,20 +198,16 @@ class MY_Model extends CI_Model {
 		// qualification (make sure that we're not allowing the site to insert data that it shouldn't)
 		foreach ($this->fields as $field) 
 		{
-			// if we are trying to set the value of the field
 			if (isset($options[$field]))
 			{
 				$this->db->set($field, $options[$field]);
 			}
 		}
 				
-		// update on primary key
 		$this->db->where($this->primary_key, $options[$this->primary_key]);
 
-		// Execute the query
 		$this->db->update($this->primary_table);
 
-		// Return the number of rows updated, or false if the row could not be inserted
 		return $this->db->affected_rows();
 	}
 	
@@ -251,14 +222,12 @@ class MY_Model extends CI_Model {
 	 */
 	function delete($options = array())
 	{
-		// required values
 		$required = array($this->primary_key);
 		if ( ! $this->_required($required, $options))
 		{
 			return FALSE;
 		}
 		
-		// execute delete query
 		$this->db->where($this->primary_key, $options[$this->primary_key]);
 		return $this->db->delete($this->primary_table);
 	}
@@ -273,15 +242,12 @@ class MY_Model extends CI_Model {
 	 */
 	function _validate_options_exist($options)
 	{
-		// if field existence validation is enabled
 		if ($this->validate_field_existence == TRUE)
 		{
 			foreach ($options as $key => $value)
 			{
-				// if the field does not exist in the database
 				if ( ! $this->db->field_exists($key, $this->primary_table))
 				{
-					// display an error
 					show_error('You are trying to insert data into a field that does not exist.  The field "'. $key .'" does not exist in the "'. $this->primary_table .'" table.');
 				}
 			}
@@ -295,7 +261,6 @@ class MY_Model extends CI_Model {
 	 */
 	function _set_editable_fields()
 	{
-		// if the fields array is empty
 		if (empty($this->fields))
 		{
 			// pull the fields dynamically from the database
