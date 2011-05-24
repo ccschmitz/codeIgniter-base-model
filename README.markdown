@@ -6,7 +6,7 @@ Here is the base model that I use on all of my CodeIgniter projects. This provid
 
 		    var $primary_table = 'companies';
 		
-				var $validate_field_existence = TRUE;
+		    var $validate_field_existence = TRUE;
 				
 		    var $fields = array(
 		        'id',
