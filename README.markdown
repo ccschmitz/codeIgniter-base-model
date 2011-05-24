@@ -56,7 +56,7 @@ When selecting records, you can filter by any field specified in the fields arra
 
 		$options = array(
 		    'name' => $this->input->post('search_name'),
-				'zipcode' => $this->input->post('search_zipcode')
+		    'zipcode' => $this->input->post('search_zipcode')
 		);
 		$company = $this->company_model->get($options);
 		
