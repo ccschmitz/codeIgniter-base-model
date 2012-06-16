@@ -125,6 +125,21 @@ class MY_Model extends CI_Model {
 	 */
 	function get($options = array())
 	{
+		// set an array for field querys and values
+		// This allows gets with operators
+		// $options = array('status >' => 5)
+		$option_fields = array();
+		foreach($options as $key => $value)
+		{
+			$parts = explode(' ', $key, 2);
+
+			$field = isset($parts[0]) ? $parts[0] : '';
+			$operator = isset($parts[1]) ? $parts[1] : '';
+
+			$option_fields[$field]['query'] = $key;
+			$option_fields[$field]['value'] = $value;
+		}
+
 		$defaults = array(
 			'sort_direction' => 'asc'
 		);
@@ -134,9 +149,9 @@ class MY_Model extends CI_Model {
 		
 		foreach ($this->fields as $field)
 		{
-			if (isset($options[$field]))
+			if (isset($option_fields[$field]))
 			{
-				$this->db->where($field, $options[$field]);
+				$this->db->where($option_fields[$field]['query'], $option_fields[$field]['value']);
 			}
 		}
 
@@ -246,9 +261,12 @@ class MY_Model extends CI_Model {
 		{
 			foreach ($options as $key => $value)
 			{
-				if ( ! $this->db->field_exists($key, $this->primary_table))
+				$parts = explode(' ', $key);
+				$field = $parts[1];
+
+				if ( ! $this->db->field_exists($field, $this->primary_table))
 				{
-					show_error('You are trying to insert data into a field that does not exist.  The field "'. $key .'" does not exist in the "'. $this->primary_table .'" table.');
+					show_error('You are trying to insert data into a field that does not exist.  The field "'. $field .'" does not exist in the "'. $this->primary_table .'" table.');
 				}
 			}
 		}
