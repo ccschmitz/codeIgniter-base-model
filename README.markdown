@@ -64,7 +64,7 @@ $options = array(
 		    'zipcode' => $this->input->post('search_zipcode')
 		);
 $company = $this->company_model->get($options);
-````
+```
 If you specify the primary key, the model knows you are looking for a single record and will return the object rather than the query result.
 
 This model is based on a model by Shawn McCool from his article [How To Write A Better Model In CodeIgniter](http://heybigname.com/2009/08/28/how-to-write-a-better-model-in-code-igniter/). It has worked out pretty well for me so far but I would love to get some feedback from the community and see if anyone has ideas for improvements or if they have a base model that they enjoy working with.
