@@ -42,14 +42,14 @@ class MY_Model extends CI_Model {
 	 *
 	 * @var bool
 	 */
-	protected $validate_field_existence = FALSE;
+	protected $validate_field_existence = false;
 	
 	/**
 	 * Used if there is no primary key for the table
 	 *
 	 * @var bool
 	 */
-	protected $no_primary_key = FALSE;
+	protected $no_primary_key = false;
 	
 	function __construct()
 	{
@@ -76,7 +76,7 @@ class MY_Model extends CI_Model {
 	{
 		if ( ! $this->_required($this->required_fields, $options))
 		{
-			return FALSE;
+			return false;
 		}
 		
 		$this->_set_editable_fields($this->primary_table);
@@ -102,13 +102,13 @@ class MY_Model extends CI_Model {
 
 		if ($query)
 		{
-			if ($this->no_primary_key == FALSE)
+			if ($this->no_primary_key == false)
 			{
 				return $this->db->insert_id();
 			}
 			else
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
@@ -198,7 +198,7 @@ class MY_Model extends CI_Model {
 		$required = array($this->primary_key);
 		if ( ! $this->_required($required, $options))
 		{
-			return FALSE;
+			return false;
 		}
 		
 		$this->_set_editable_fields($this->primary_table);
@@ -240,7 +240,7 @@ class MY_Model extends CI_Model {
 		$required = array($this->primary_key);
 		if ( ! $this->_required($required, $options))
 		{
-			return FALSE;
+			return false;
 		}
 		
 		$this->db->where($this->primary_key, $options[$this->primary_key]);
@@ -257,7 +257,7 @@ class MY_Model extends CI_Model {
 	 */
 	function _validate_options_exist($options)
 	{
-		if ($this->validate_field_existence == TRUE)
+		if ($this->validate_field_existence == true)
 		{
 			foreach ($options as $key => $value)
 			{
@@ -301,10 +301,10 @@ class MY_Model extends CI_Model {
 		{
 			if ( ! isset($data[$field]))
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
 	
 	/**
